@@ -1,0 +1,20 @@
+## Interface: 90001
+## Title: Unit Tooltip Upgrade
+## Notes: Adds health bar in a unit tooltip
+## Author: @@author@@
+## Version: @@release-version@@
+## OptionalDeps: Ace3
+## SavedVariables: UnitTooltipUpgradeDB
+## X-Website: https://wow.curseforge.com/projects/no-project-yet
+## X-Category: Interface Enhancements
+## X-Credit: me =)
+## X-Embeds: Ace3
+
+libs.xml
+
+UnitTooltipUpgrade.lua
+
+UnitTooltipUpgrade_Frame.lua
+UnitTooltipUpgrade_Frame.xml
+
+UnitTooltipUpgrade_Main.lua
