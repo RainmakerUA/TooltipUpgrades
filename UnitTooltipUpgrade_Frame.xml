@@ -19,10 +19,15 @@
 				<BarTexture file="Interface\TargetingFrame\UI-StatusBar" />
 				<BarColor r="0.5" g="0.5" b="0.5" a="1" />
 			</StatusBar>
-			<Frame parentKey="border" setAllPoints="true" frameLevel="3" inherits="BackdropTemplate">
-				<KeyValues>
-					<KeyValue key="backdropInfo" value="UTU_STATUS_BACKDROP" type="global"/>
-				</KeyValues>
+			<Frame parentKey="border" setAllPoints="true" frameLevel="3">
+				<Backdrop edgeFile="Interface\Tooltips\UI-Tooltip-Border" alphaMode="BLEND">
+					<EdgeSize>
+						<AbsValue val="10" />
+						<BackgroundInsets>
+							<AbsInset left="5" right="5" top="5" bottom="5"/>
+						</BackgroundInsets>
+					</EdgeSize>
+				</Backdrop>
 				<Layers>
 					<Layer level="OVERLAY">
 						<FontString parentKey="leftText" inherits="TextStatusBarText">
