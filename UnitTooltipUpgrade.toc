@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90105
 ## Title: Unit Tooltip Upgrade
 ## Notes: Adds health bar in a unit tooltip
 ## Author: @@author@@

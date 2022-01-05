@@ -26,10 +26,15 @@ local math_min = math.min
 local table_concat = table.concat
 local AbbreviateLargeNumbers = AbbreviateLargeNumbers
 local BreakUpLargeNumbers = BreakUpLargeNumbers
+local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
 local GetLocale = GetLocale
+local ItemRefTooltip = ItemRefTooltip
+local UnitGUID = UnitGUID
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
 local GameTooltip = GameTooltip
+local GameTooltipTextLeft1 = GameTooltipTextLeft1
+local WHITE_FONT_COLOR = WHITE_FONT_COLOR
 
 local metadata = {
 	title = GetAddOnMetadata(addonName, "Title"),
@@ -37,6 +42,7 @@ local metadata = {
 }
 
 local genderTags
+local gameTooltipShoppingTooltips
 
 do
 	local genderTex = [[Interface\Glues\CharacterCreate\UI-CharacterCreate-Gender]]
@@ -107,8 +113,19 @@ function M:OnInitialize()
 end
 
 function M:OnEnable()
+	local shopping1, shopping2 = unpack(GameTooltip.shoppingTooltips)
 	self:SecureHookScript(GameTooltip, "OnTooltipSetUnit", "OnTooltipSetUnit")
+	self:SecureHookScript(GameTooltip, "OnTooltipSetItem", "OnTooltipSetItem")
+	self:SecureHookScript(GameTooltip.shoppingTooltips[1], "OnTooltipSetItem", "OnTooltipSetItem")
+	self:SecureHookScript(GameTooltip.shoppingTooltips[2], "OnTooltipSetItem", "OnTooltipSetItem")
+	-- ItemRefTooltip, EmbeddedItemTooltip, EmbeddedItemTooltipTooltip
 	self:SecureHookScript(GameTooltip, "OnHide", "OnTooltipHide")
+
+	gameTooltipShoppingTooltips = {shopping1, shopping2}
+end
+
+local function isShoppingTooltip(tt)
+	return tt == gameTooltipShoppingTooltips[1] or tt == gameTooltipShoppingTooltips[2]
 end
 
 local function findFirst(t, filterFunc)
@@ -147,10 +164,31 @@ function M:OnTooltipSetUnit(tt, ...)
 	local _, unit = tt:GetUnit()
 
 	if unit then
-		local hp, maxhp, sex = UnitHealth(unit), UnitHealthMax(unit), UnitSex(unit)
+		local hp, maxhp, sex, guid = UnitHealth(unit), UnitHealthMax(unit), UnitSex(unit), UnitGUID(unit)
 		local color = { GameTooltip_UnitColor(unit) }
 		local frame = Frame:CreateHealthBarFrame(tt, hp, maxhp, color)
-		GameTooltipTextLeft1:SetText(GameTooltipTextLeft1:GetText() .. "\32" .. genderTags[sex or 0])
+		local text = GameTooltipTextLeft1:GetText()
+		local id = ""
+		if (guid and guid:match("^%a+") == "Creature") then
+			id = guid:match("-(%d+)-%x+$")
+		end
+		GameTooltipTextLeft1:SetText(("%s %s %s"):format(text, genderTags[sex or 0], WHITE_FONT_COLOR:WrapTextInColorCode(id)))
+	end
+end
+
+function M:OnTooltipSetItem(tt)
+	local _, item = tt:GetItem()
+
+	if item then
+		local itemLevel = GetDetailedItemLevelInfo(item)
+
+		if type(itemLevel) == "number" and itemLevel > 1 then
+			local textNameSuffix = isShoppingTooltip(tt) and "TextLeft2" or "TextLeft1"
+			local text = _G[tt:GetName() .. textNameSuffix]
+			local orgTextValue = text:GetText()
+
+			text:SetText(("%s :: %d"):format(orgTextValue, itemLevel))
+		end
 	end
 end
 
