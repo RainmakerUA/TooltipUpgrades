@@ -5,7 +5,7 @@
 ## Version: @@release-version@@
 ## OptionalDeps: Ace3
 ## SavedVariables: TooltipUpgradesDB
-## X-Website: https://www.curseforge.com/wow/addons/unit-tooltip-upgrade
+## X-Website: https://www.curseforge.com/wow/addons/tooltip-upgrades
 ## X-Category: Tooltip, Interface Enhancements
 ## X-Credit: me =)
 ## X-Embeds: Ace3
