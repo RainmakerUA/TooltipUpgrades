@@ -1,0 +1,20 @@
+## Interface: 90105
+## Title: Tooltip Upgrades
+## Notes: Small upgrades for tooltips
+## Author: @@author@@
+## Version: @@release-version@@
+## OptionalDeps: Ace3
+## SavedVariables: TooltipUpgradeDB
+## X-Website: https://www.curseforge.com/wow/addons/unit-tooltip-upgrade
+## X-Category: Tooltip, Interface Enhancements
+## X-Credit: me =)
+## X-Embeds: Ace3
+
+libs.xml
+
+addon.lua
+
+frame.lua
+frame.xml
+
+main.lua

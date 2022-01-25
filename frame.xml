@@ -1,12 +1,12 @@
 <!--
-		## Unit Tooltip Upgrade ver. @@release-version@@
-		## UnitTooltipUpgrade_Frame.xml - module
-		Frame markup for UnitTooltipUpgrade addon
+		## Tooltip Upgrades ver. @@release-version@@
+		## frame.xml - module
+		Frame markup for TooltipUpgrades addon
 -->
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
-	<Frame name="UnitTooltipUpgradeStatus" mixin="UnitTooltipUpgradeStatusMixin" frameLevel="1" virtual="true">
+	<Frame name="TooltipUpgradesStatus" mixin="TooltipUpgradesStatusMixin" frameLevel="1" virtual="true">
 		<Size>
 			<AbsDimension y="16"/>
 		</Size>
@@ -21,7 +21,7 @@
 			</StatusBar>
 			<Frame parentKey="border" setAllPoints="true" frameLevel="3" inherits="BackdropTemplate">
 				<KeyValues>
-					<KeyValue key="backdropInfo" value="UTU_STATUS_BACKDROP" type="global"/>
+					<KeyValue key="backdropInfo" value="TU_TooltipStatusBackdrop" type="global"/>
 				</KeyValues>
 				<Layers>
 					<Layer level="OVERLAY">

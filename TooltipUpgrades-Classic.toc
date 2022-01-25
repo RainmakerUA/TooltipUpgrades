@@ -1,10 +1,10 @@
-## Interface: 90105
-## Title: Unit Tooltip Upgrade
-## Notes: Adds health bar in a unit tooltip
+## Interface: 11401
+## Title: Tooltip Upgrades
+## Notes: Small upgrades for tooltips
 ## Author: @@author@@
 ## Version: @@release-version@@
 ## OptionalDeps: Ace3
-## SavedVariables: UnitTooltipUpgradeDB
+## SavedVariables: TooltipUpgradeDB
 ## X-Website: https://www.curseforge.com/wow/addons/unit-tooltip-upgrade
 ## X-Category: Tooltip, Interface Enhancements
 ## X-Credit: me =)
@@ -12,9 +12,9 @@
 
 libs.xml
 
-UnitTooltipUpgrade.lua
+addon.lua
 
-UnitTooltipUpgrade_Frame.lua
-UnitTooltipUpgrade_Frame.xml
+frame.lua
+frame.xml
 
-UnitTooltipUpgrade_Main.lua
+main.lua

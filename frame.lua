@@ -1,23 +1,37 @@
 --[=====[
-		## Unit Tooltip Upgrade ver. @@release-version@@
-		## UnitTooltipUpgrade_Frame.lua - module
-		Frame (Status Bar) module for UnitTooltipUpgrade addon
+		## Tooltip Upgrades ver. @@release-version@@
+		## frame.lua - module
+		Frame (Status Bar) module for TooltipUpgrades addon
 --]=====]
 
 local addonName = ...
-local UnitTooltipUpgrade = LibStub("AceAddon-3.0"):GetAddon(addonName)
-local Frame = UnitTooltipUpgrade:NewModule("Frame", "AceHook-3.0")
+local TooltipUpgrades = LibStub("AceAddon-3.0"):GetAddon(addonName)
+local Frame = TooltipUpgrades:NewModule("Frame", "AceHook-3.0")
+
+local unpack = unpack
+
+local AbbreviateLargeNumbers = AbbreviateLargeNumbers
+local CreateFramePool = CreateFramePool
+local GameTooltip = GameTooltip
+local GameTooltip_InsertFrame = GameTooltip_InsertFrame
+local GameTooltipStatusBar = GameTooltipStatusBar
+
+-- Remove all known globals after this point
+-- luacheck: std none
 
 local F = Frame
 local Bar = {}
 
-UnitTooltipUpgradeStatusMixin = Bar
+-- luacheck: push globals TooltipUpgradesStatusMixin TU_TooltipStatusBackdrop
 
-_G["UTU_STATUS_BACKDROP"] = {
-								edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-								edgeSize = 10,
-								insets = { left = 5, right = 5, top = 5, bottom = 5 },
-							}
+TooltipUpgradesStatusMixin = Bar
+TU_TooltipStatusBackdrop = {
+							edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+							edgeSize = 10,
+							insets = { left = 5, right = 5, top = 5, bottom = 5 },
+						}
+
+-- luacheck: pop
 
 function Bar:OnLoad()
 	self:SetFrameLevel(2)
@@ -54,7 +68,7 @@ end
 
 function F:CreateHealthBarFrame(parent, hp, maxhp, color)
 	if not self.healthBarPool then
-		self.healthBarPool = CreateFramePool("FRAME", nil, "UnitTooltipUpgradeStatus")
+		self.healthBarPool = CreateFramePool("FRAME", nil, "TooltipUpgradesStatus")
 	else
 		self.healthBarPool:ReleaseAll()
 		self.frame = nil
