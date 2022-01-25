@@ -1,16 +1,17 @@
 ## Interface: 20503
 ## Title: Tooltip Upgrades
-## Notes: Small upgrades for tooltips
+## Notes: Small upgrades for WoW tooltips (Unit, Item, Buff/Debuff/Aura)
 ## Author: @@author@@
 ## Version: @@release-version@@
 ## OptionalDeps: Ace3
-## SavedVariables: TooltipUpgradeDB
+## SavedVariables: TooltipUpgradesDB
 ## X-Website: https://www.curseforge.com/wow/addons/unit-tooltip-upgrade
 ## X-Category: Tooltip, Interface Enhancements
 ## X-Credit: me =)
 ## X-Embeds: Ace3
 
 libs.xml
+Locales\locales.xml
 
 addon.lua
 

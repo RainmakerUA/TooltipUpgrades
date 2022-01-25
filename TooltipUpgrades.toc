@@ -1,0 +1,1 @@
+# File is required for curseforge.com compatibility

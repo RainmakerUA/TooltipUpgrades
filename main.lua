@@ -7,7 +7,10 @@
 local addonName = ...
 local TooltipUpgrades = LibStub("AceAddon-3.0"):GetAddon(addonName)
 local Main = TooltipUpgrades:NewModule("Main", "AceHook-3.0")
---local AceL = LibStub("AceLocale-3.0"):GetLocale(addonName)
+local AceDB = LibStub("AceDB-3.0")
+local ACReg = LibStub("AceConfigRegistry-3.0")
+local ACDialog = LibStub("AceConfigDialog-3.0")
+local AceL = LibStub("AceLocale-3.0"):GetLocale(addonName)
 local Utils = LibStub("rmUtils-1.0")
 
 local _G = _G
@@ -37,7 +40,7 @@ local WHITE_FONT_COLOR = WHITE_FONT_COLOR
 -- luacheck: std none
 
 local M = Main
---local L = Utils.UpgradeL(AceL)
+local L = Utils.UpgradeL(AceL)
 local Frame
 
 local genderTags
@@ -55,8 +58,6 @@ do
 	}
 end
 
---[=[ TODO: Settings
-
 local metadata = {
 	title = GetAddOnMetadata(addonName, "Title"),
 	notes = GetAddOnMetadata(addonName, "Notes")
@@ -64,18 +65,23 @@ local metadata = {
 
 -- Default options
 local defaults = {
-	profile = {
-		-- Settings defaults
+	global = {
+		healthBar = true,
+		genderIcon = true,
+		npcID = true,
+		itemLevel = true,
+		auraSource = true,
 	}
 }
 
+local aceDB
 local db
 
 local function getOptions()
 	local options = {
-		name = metadata.title,
 		type = "group",
-		guiInline = true,
+		name = metadata.title,
+		inline = true,
 		get = function(info)
 			return db[info[#info]]
 		end,
@@ -83,31 +89,91 @@ local function getOptions()
 			db[info[#info]] = value
 		end,
 		args = {
-			mpdesc = {
-				name = metadata.notes,
+			desc = {
 				type = "description",
+				name = metadata.notes,
 				order = 0,
 			},
-
+			unit = {
+				type = "group",
+				order = 10,
+				name = L"Unit Tooltip",
+				inline = true,
+				width = "full",
+				args = {
+					healthBar = {
+						type = "toggle",
+						order = 10,
+						name = L"Health Bar",
+						desc = L"Add health bar to the unit (PC/NPC) tooltip",
+						width = 1,
+					},
+					genderIcon = {
+						type = "toggle",
+						order = 20,
+						name = L"Gender Icon",
+						desc = L"Add gender icon (male/female) to the unit (PC/NPC) tooltip",
+						width = 1,
+					},
+					npcID = {
+						type = "toggle",
+						order = 30,
+						name = L"NPC ID",
+						desc = L"Add NPC ID to the unit tooltip",
+						width = 1,
+					},
+				},
+			},
+			item = {
+				type = "group",
+				order = 20,
+				name = L"Item Tooltip",
+				inline = true,
+				width = "full",
+				args = {
+					itemLevel = {
+						type = "toggle",
+						order = 10,
+						name = L"Item Level",
+						desc = L"Add item level to the item tooltip",
+						width = 1,
+					},
+				},
+			},
+			aura = {
+				type = "group",
+				order = 30,
+				name = L"Buff/Debuff/Aura Tooltip",
+				inline = true,
+				width = "full",
+				args = {
+					auraSource = {
+						type = "toggle",
+						order = 10,
+						name = L"Source of Aura",
+						desc = L"Add source name to the aura tooltip",
+						width = 1,
+					},
+				},
+			},
 		}
 	}
 	return options
 end
-]=]
 
 function M:OnInitialize()
---[[	-- Grab our DB and fill in the 'db' variable
-	self.db = LibStub("AceDB-3.0"):New(addonName .. "DB", defaults, "Default")
-	db = self.db.profile
+	-- Grab our DB and fill in the 'db' variable
+	aceDB = AceDB:New(addonName .. "DB", defaults)
+	db = aceDB.global
+
+	--@debug@
+	self.db = aceDB
+	--@end-debug@
 
 	-- Register our options
-	local ACReg, ACDialog = LibStub("AceConfigRegistry-3.0"), LibStub("AceConfigDialog-3.0")
-	local helpName = addonName .. "-Help"
 	ACReg:RegisterOptionsTable(addonName, getOptions)
-	ACReg:RegisterOptionsTable(helpName, getHelp)
 	ACDialog:AddToBlizOptions(addonName, metadata.title)
-	ACDialog:AddToBlizOptions(helpName, L["Help on patterns"], metadata.title)
-]]--
+
 	Frame = TooltipUpgrades:GetModule("Frame")
 end
 
@@ -139,53 +205,69 @@ function M:OnTooltipSetUnit(tt)
 	local _, unit = tt:GetUnit()
 
 	if unit then
-		local hp, maxhp, sex, guid = UnitHealth(unit), UnitHealthMax(unit), UnitSex(unit), UnitGUID(unit)
-		local color = { GameTooltip_UnitColor(unit) }
-		local _ = Frame:CreateHealthBarFrame(tt, hp, maxhp, color)
+		if db.healthBar then
+			local hp, maxhp = UnitHealth(unit), UnitHealthMax(unit)
+			local color = { GameTooltip_UnitColor(unit) }
+			local _ = Frame:CreateHealthBarFrame(tt, hp, maxhp, color)
+		end
+
 		local fontString = getTooltipFontString(tt, "TextLeft1")
 		local text = fontString:GetText()
-		local id = ""
-		if (guid and guid:match("^%a+") == "Creature") then
-			id = guid:match("-(%d+)-%x+$")
+
+		if db.genderIcon then
+			local sex = UnitSex(unit)
+			text = text .. "\032" .. genderTags[sex or 0]
 		end
-		fontString:SetText(("%s %s %s"):format(text, genderTags[sex or 0], WHITE_FONT_COLOR:WrapTextInColorCode(id)))
+
+		if db.npcID then
+			local guid = UnitGUID(unit)
+			if (guid and guid:match("^%a+") == "Creature") then
+				local id = guid:match("-(%d+)-%x+$")
+				text = text .. "\032" .. WHITE_FONT_COLOR:WrapTextInColorCode(id)
+			end
+		end
+
+		fontString:SetText(text)
 	end
 end
 
 function M:OnTooltipSetItem(tt)
-	local _, item = tt:GetItem()
+	if db.itemLevel then
+		local _, item = tt:GetItem()
 
-	if item then
-		local itemLevel = GetDetailedItemLevelInfo(item)
+		if item then
+			local itemLevel = GetDetailedItemLevelInfo(item)
 
-		if type(itemLevel) == "number" and itemLevel > 1 then
-			local textNameSuffix = isShoppingTooltip(tt) and "TextLeft2" or "TextLeft1"
-			local text = getTooltipFontString(tt, textNameSuffix)
-			local orgTextValue = text:GetText()
+			if type(itemLevel) == "number" and itemLevel > 1 then
+				local textNameSuffix = isShoppingTooltip(tt) and "TextLeft2" or "TextLeft1"
+				local text = getTooltipFontString(tt, textNameSuffix)
+				local orgTextValue = text:GetText()
 
-			text:SetText(("%s :: %d"):format(orgTextValue, itemLevel))
+				text:SetText(("%s :: %d"):format(orgTextValue, itemLevel))
+			end
 		end
 	end
 end
 
 function M:OnTooltipSetAura(func, tooltip, ...)
-	local ok, _, _, _, _, _, _, caster = pcall(func, ...);
+	if db.auraSource then
+		local ok, _, _, _, _, _, _, caster = pcall(func, ...);
 
-	if ok and caster then
-		local pet = caster;
+		if ok and caster then
+			local pet = caster;
 
-		caster = (UnitIsUnit(caster, "pet") and "player" or caster:gsub("[pP][eE][tT]", ""));
+			caster = (UnitIsUnit(caster, "pet") and "player" or caster:gsub("[pP][eE][tT]", ""));
 
-		tooltip:AddDoubleLine(
-								" ",
-								(pet == caster
-									and "|cffffc000Source:|r %s"
-									or "|cffffc000Source:|r %s (%s)"):format(UnitName(caster), UnitName(pet)),
-								1, 0.975, 0, RAID_CLASS_COLORS[select(2, UnitClass(caster))]:GetRGB()
-							);
-		tooltip:Show();
+			tooltip:AddDoubleLine(
+									" ",
+									(pet == caster
+										and "|cffffc000%s:|r %s"
+										or "|cffffc000%s:|r %s (%s)"):format(L"Source", UnitName(caster), UnitName(pet)),
+									1, 0.975, 0, RAID_CLASS_COLORS[select(2, UnitClass(caster))]:GetRGB()
+								);
+			tooltip:Show();
+		end
 	end
-
 end
 
 function M:OnTooltipHide()
