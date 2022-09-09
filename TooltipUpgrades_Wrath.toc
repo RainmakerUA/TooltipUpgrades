@@ -1,4 +1,4 @@
-## Interface: 90207
+## Interface: 30400
 ## Title: Tooltip Upgrades
 ## Notes: Small upgrades for WoW tooltips (Unit, Item, Buff/Debuff/Aura)
 ## Author: @@author@@

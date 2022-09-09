@@ -7,9 +7,10 @@
 		"log": "No changes provided",
 		"date": "Recenly",
 		"gameVersions": [
-			"9.1.5",
-			"2.5.3",
-			"1.14.1"
+			"9.2.7",
+            "2.5.4",
+			"3.4.0",
+			"1.14.3"
 		]
 	},
 	"exclude": [
@@ -27,6 +28,6 @@
 		"AceDB-3.0",
 		"AceHook-3.0",
 		"AceLocale-3.0",
-		"rmUtils-1.0"
+		"rmUtils-1.1"
 	]
 }

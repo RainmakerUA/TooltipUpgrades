@@ -11,7 +11,7 @@ local AceDB = LibStub("AceDB-3.0")
 local ACReg = LibStub("AceConfigRegistry-3.0")
 local ACDialog = LibStub("AceConfigDialog-3.0")
 local AceL = LibStub("AceLocale-3.0"):GetLocale(addonName)
-local Utils = LibStub("rmUtils-1.0")
+local Utils = LibStub("rmUtils-1.1")
 
 local _G = _G
 local pcall = pcall
@@ -112,7 +112,7 @@ local function getOptions()
 						type = "toggle",
 						order = 20,
 						name = L"Gender Icon",
-						desc = L"Add gender icon (male/female) to the unit (PC/NPC) tooltip",
+						desc = L"Add gender (body type) icon (male/female) to the unit (PC/NPC) tooltip",
 						width = 1,
 					},
 					npcID = {
