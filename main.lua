@@ -40,9 +40,11 @@ local UnitName = UnitName
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
 local UnitSex = UnitSex
+local TooltipType = Enum.TooltipDataType
 local GameTooltip = GameTooltip
 local GameTooltip_UnitColor = GameTooltip_UnitColor
 local PowerBarColor = PowerBarColor
+local TooltipDataProcessor = TooltipDataProcessor
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 local WHITE_FONT_COLOR = WHITE_FONT_COLOR
 
@@ -508,11 +510,19 @@ end
 function M:OnEnable()
 	local shopping1, shopping2 = unpack(GameTooltip.shoppingTooltips)
 
-	self:SecureHookScript(GameTooltip, "OnTooltipSetSpell", "OnTooltipSetSpell")
-	self:SecureHookScript(GameTooltip, "OnTooltipSetUnit", "OnTooltipSetUnit")
-	self:SecureHookScript(GameTooltip, "OnTooltipSetItem", "OnTooltipSetItem")
-	self:SecureHookScript(GameTooltip.shoppingTooltips[1], "OnTooltipSetItem", "OnTooltipSetItem")
-	self:SecureHookScript(GameTooltip.shoppingTooltips[2], "OnTooltipSetItem", "OnTooltipSetItem")
+	if Utils.IsClassic then
+		self:SecureHookScript(GameTooltip, "OnTooltipSetSpell", "OnTooltipSetSpell")
+		self:SecureHookScript(GameTooltip, "OnTooltipSetUnit", "OnTooltipSetUnit")
+		self:SecureHookScript(GameTooltip, "OnTooltipSetItem", "OnTooltipSetItem")
+		self:SecureHookScript(GameTooltip.shoppingTooltips[1], "OnTooltipSetItem", "OnTooltipSetItem")
+		self:SecureHookScript(GameTooltip.shoppingTooltips[2], "OnTooltipSetItem", "OnTooltipSetItem")
+
+	else
+		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Item, Utils.Bind(self.OnTooltipSetItem, self))
+		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Spell, Utils.Bind(self.OnTooltipSetSpell, self))
+		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Unit, Utils.Bind(self.OnTooltipSetUnit, self))
+	end
+
 	self:SecureHookScript(GameTooltip, "OnHide", "OnTooltipHide")
 
 	self:SecureHook(GameTooltip, "SetUnitAura", Utils.Bind(self.OnTooltipSetAura, self, UnitAura));
@@ -710,7 +720,7 @@ function M:OnTooltipSetUnit(tt)
 end
 
 function M:OnTooltipSetItem(tt)
-	if db.itemLevel then
+	if db.itemLevel and tt.GetItem then
 		local _, item = tt:GetItem()
 
 		if item then

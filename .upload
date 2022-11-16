@@ -7,6 +7,7 @@
 		"log": "No changes provided",
 		"date": "Recenly",
 		"gameVersions": [
+            "10.0.2",
 			"9.2.7",
             "2.5.4",
 			"3.4.0",
