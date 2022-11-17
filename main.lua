@@ -17,6 +17,7 @@ local _G = _G
 local ipairs = ipairs
 local pairs = pairs
 local pcall = pcall
+local print = print
 local select = select
 local type = type
 local unpack = unpack
@@ -49,6 +50,7 @@ local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 local WHITE_FONT_COLOR = WHITE_FONT_COLOR
 
 local powerTypeMana = Enum.PowerType.Mana
+local powerTypeEssence = Enum.PowerType.Essence
 local powerTypeBlood = Enum.PowerType.RuneBlood
 local powerTypeFrost = Enum.PowerType.RuneFrost
 local powerTypeUnholy = Enum.PowerType.RuneUnholy
@@ -81,6 +83,7 @@ local metadata = {
 }
 
 local customPowerColors = {
+	[powerTypeEssence] = RAID_CLASS_COLORS['EVOKER'],
 	[powerTypeBlood] = { r = 0.8, b = 0.2, g = 0.2 },
 	[powerTypeFrost] = { r = 0.6, b = 1, g = 0.6 },
 	[powerTypeUnholy] = { r = 0.5, b = 0.5, g = 1 },
@@ -520,6 +523,7 @@ function M:OnEnable()
 	else
 		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Item, Utils.Bind(self.OnTooltipSetItem, self))
 		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Spell, Utils.Bind(self.OnTooltipSetSpell, self))
+		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Macro, Utils.Bind(self.OnTooltipSetSpell, self))
 		TooltipDataProcessor.AddTooltipPostCall(TooltipType.Unit, Utils.Bind(self.OnTooltipSetUnit, self))
 	end
 
@@ -658,9 +662,31 @@ local function getPowerColor(powerType)
 	return PowerBarColor[powerType] or customPowerColors[powerType]
 end
 
-function M:OnTooltipSetSpell(tt)
+function M:OnTooltipSetSpell(tt, data)
 	if db.manaCosts.enabled then
-		local _, id = tt:GetSpell()
+		local id
+
+		if data then
+			if data.type == TooltipType.Macro then
+				if data.lines[1] and data.lines[1].tooltipType == TooltipType.Spell then
+					id = data.lines[1].tooltipID
+				else
+					return -- not a spell macro
+				end
+			elseif data.type == TooltipType.Spell then
+				id = data.id
+			end
+		else
+			id = select(2, tt:GetSpell())
+		end
+
+		if not id then
+			--@debug@
+			print(Utils.Text.GetError("TTU: Cannot get spell ID!"))
+			--@end-debug@
+			return
+		end
+
 		local costs = getSpellCosts(id)
 		local textLine = getTooltipFontString(tt, "TextLeft2")
 		local text = textLine:GetText()
