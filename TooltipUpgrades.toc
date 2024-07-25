@@ -1,6 +1,7 @@
-## Interface: 100002
+## Interface: 11503, 40400, 110000, 110002
 ## Title: Tooltip Upgrades
 ## Notes: Small upgrades for WoW tooltips (Unit, Item, Buff/Debuff/Aura, Spell)
+## IconTexture: Interface\AddOns\TooltipUpgrades\logo.tga
 ## Author: @@author@@
 ## Version: @@release-version@@
 ## OptionalDeps: Ace3

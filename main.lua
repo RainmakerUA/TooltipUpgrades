@@ -28,7 +28,7 @@ local table_concat = table.concat
 
 local GetAddOnMetadata = GetAddOnMetadata
 local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
-local GetSpellPowerCost = GetSpellPowerCost
+local GetSpellPowerCost = GetSpellPowerCost or C_Spell.GetSpellPowerCost
 local UnitAura = UnitAura
 local UnitBuff = UnitBuff
 local UnitClass = UnitClass
