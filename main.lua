@@ -560,7 +560,7 @@ end
 local function getSpellCosts(id)
 	if type(id) == "number" and id > 0 then
 		local costs = Utils.Filter(
-							GetSpellPowerCost(id),
+							GetSpellPowerCost(id) or {},
 							function (v)
 								return v.requiredAuraID == 0 or v.hasRequiredAura
 							end
