@@ -26,7 +26,7 @@ local math_ceil = math.ceil
 local math_min = math.min
 local table_concat = table.concat
 
-local GetAddOnMetadata = GetAddOnMetadata
+local GetAddOnMetadata = GetAddOnMetadata or C_AddOns.GetAddOnMetadata
 local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
 local GetSpellPowerCost = GetSpellPowerCost or C_Spell.GetSpellPowerCost
 local UnitAura = UnitAura
