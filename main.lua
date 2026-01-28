@@ -25,17 +25,42 @@ local unpack = unpack
 local math_ceil = math.ceil
 local math_min = math.min
 local table_concat = table.concat
+local issecretvalue = issecretvalue or function() return false end
 
+local GetAuraDataByIndex
+local GetBuffDataByIndex
+local GetDebuffDataByIndex
+
+do
+	local function wrapUnitAura(unitFunc)
+		return function(unit, index, filter)
+			local auraParts = { unitFunc(unit, index, filter) }
+			return {
+				name = auraParts[1],
+				sourceUnit = auraParts[7],
+			}
+		end
+	end
+	if C_UnitAuras then
+		GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+		GetBuffDataByIndex = C_UnitAuras.GetBuffDataByIndex
+		GetDebuffDataByIndex = C_UnitAuras.GetDebuffDataByIndex
+	else
+		GetAuraDataByIndex = wrapUnitAura(UnitAura)
+		GetBuffDataByIndex = wrapUnitAura(UnitBuff)
+		GetDebuffDataByIndex = wrapUnitAura(UnitDebuff)
+	end
+end
+
+local CurveScaleTo100 = CurveConstants and CurveConstants.ScaleTo100 or nil
 local GetAddOnMetadata = GetAddOnMetadata or C_AddOns.GetAddOnMetadata
-local GetDetailedItemLevelInfo = GetDetailedItemLevelInfo
+local GetDetailedItemLevelInfo = C_Item.GetDetailedItemLevelInfo
 local GetSpellPowerCost = GetSpellPowerCost or C_Spell.GetSpellPowerCost
-local UnitAura = UnitAura
-local UnitBuff = UnitBuff
 local UnitClass = UnitClass
-local UnitDebuff = UnitDebuff
 local UnitGUID = UnitGUID
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
+local UnitHealthPercent = UnitHealthPercent
 local UnitIsUnit = UnitIsUnit
 local UnitName = UnitName
 local UnitPower = UnitPower
@@ -49,11 +74,8 @@ local TooltipDataProcessor = TooltipDataProcessor
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 local WHITE_FONT_COLOR = WHITE_FONT_COLOR
 
-local powerTypeMana = Enum.PowerType.Mana
-local powerTypeEssence = Enum.PowerType.Essence
-local powerTypeBlood = Enum.PowerType.RuneBlood
-local powerTypeFrost = Enum.PowerType.RuneFrost
-local powerTypeUnholy = Enum.PowerType.RuneUnholy
+local Power = Enum.PowerType
+local powerTypeMana = Power.Mana
 
 -- Remove all known globals after this point
 -- luacheck: std none
@@ -82,12 +104,42 @@ local metadata = {
 	notes = GetAddOnMetadata(addonName, "Notes")
 }
 
-local customPowerColors = {
-	[powerTypeEssence] = RAID_CLASS_COLORS['EVOKER'],
-	[powerTypeBlood] = { r = 0.8, b = 0.2, g = 0.2 },
-	[powerTypeFrost] = { r = 0.6, b = 1, g = 0.6 },
-	[powerTypeUnholy] = { r = 0.5, b = 0.5, g = 1 },
-}
+local getPowerColor
+
+do
+	local p = Power
+	local powers = {
+		-- Defined by WoW API
+		[p.Mana] = PowerBarColor["MANA"],
+		[p.Rage] = PowerBarColor["RAGE"],
+		[p.Focus] = PowerBarColor["FOCUS"],
+		[p.Energy] = PowerBarColor["ENERGY"],
+		[p.ComboPoints] = PowerBarColor["COMBO_POINTS"],
+		[p.Runes] = PowerBarColor["RUNES"],
+		[p.RunicPower] = PowerBarColor["RUNIC_POWER"],
+		[p.SoulShards] = PowerBarColor["SOUL_SHARDS"],
+		[p.LunarPower] = PowerBarColor["LUNAR_POWER"],
+		[p.HolyPower] = PowerBarColor["HOLY_POWER"],
+		[p.Maelstrom] = PowerBarColor["MAELSTROM"],
+		[p.Chi] = PowerBarColor["CHI"],
+		[p.Insanity] = PowerBarColor["INSANITY"],
+		[p.ArcaneCharges] = PowerBarColor["ARCANE_CHARGES"],
+		[p.Fury] = PowerBarColor["FURY"],
+		[p.Pain] = PowerBarColor["PAIN"],
+		-- Simulated
+		[p.BurningEmbers] = PowerBarColor["AMMOSLOT"],
+		[p.DemonicFury] = PowerBarColor["INSANITY"],
+		[p.ShadowOrbs] = PowerBarColor["INSANITY"],
+		[p.Essence] = RAID_CLASS_COLORS['EVOKER'],
+		[p.RuneBlood] = { r = 0.8, b = 0.2, g = 0.2 },
+		[p.RuneFrost] = { r = 0.6, b = 1, g = 0.6 },
+		[p.RuneUnholy] = { r = 0.5, b = 0.5, g = 1 },
+	}
+
+	getPowerColor = function (powerType)
+		return powers[powerType]
+	end
+end
 
 -- Default options
 local defaults = {
@@ -529,9 +581,9 @@ function M:OnEnable()
 
 	self:SecureHookScript(GameTooltip, "OnHide", "OnTooltipHide")
 
-	self:SecureHook(GameTooltip, "SetUnitAura", Utils.Bind(self.OnTooltipSetAura, self, UnitAura));
-	self:SecureHook(GameTooltip, "SetUnitBuff", Utils.Bind(self.OnTooltipSetAura, self, UnitBuff));
-	self:SecureHook(GameTooltip, "SetUnitDebuff", Utils.Bind(self.OnTooltipSetAura, self, UnitDebuff));
+	self:SecureHook(GameTooltip, "SetUnitAura", Utils.Bind(self.OnTooltipSetAura, self, GetAuraDataByIndex))
+	self:SecureHook(GameTooltip, "SetUnitBuff", Utils.Bind(self.OnTooltipSetAura, self, GetBuffDataByIndex))
+	self:SecureHook(GameTooltip, "SetUnitDebuff", Utils.Bind(self.OnTooltipSetAura, self, GetDebuffDataByIndex))
 
 	gameTooltipShoppingTooltips = {shopping1, shopping2}
 end
@@ -554,6 +606,9 @@ local function findFirst(t, filterFunc)
 end
 
 local function getPercent(num, whole)
+	if issecretvalue(whole) or issecretvalue(num) then
+		return 0
+	end
 	return whole ~= 0 and (num / whole) * 100 or 0
 end
 
@@ -658,10 +713,6 @@ local function getManaCostText(costs)
 	return nil
 end
 
-local function getPowerColor(powerType)
-	return PowerBarColor[powerType] or customPowerColors[powerType]
-end
-
 function M:OnTooltipSetSpell(tt, data)
 	if db.manaCosts.enabled then
 		local id
@@ -721,8 +772,9 @@ function M:OnTooltipSetUnit(tt)
 	if unit then
 		if db.healthBar then
 			local hp, maxhp = UnitHealth(unit), UnitHealthMax(unit)
+			local perchp = UnitHealthPercent and UnitHealthPercent(unit, false, CurveScaleTo100) or nil
 			local color = { GameTooltip_UnitColor(unit) }
-			local _ = Frame:CreateHealthBarFrame(tt, hp, maxhp, color)
+			local _ = Frame:CreateHealthBarFrame(tt, hp, maxhp, perchp, color)
 		end
 
 		local fontString = getTooltipFontString(tt, "TextLeft1")
@@ -765,13 +817,13 @@ end
 
 function M:OnTooltipSetAura(func, tooltip, ...)
 	if db.auraSource then
-		local ok, _, _, _, _, _, _, caster = pcall(func, ...);
+		local ok, auraData = pcall(func, ...)
+		local caster = ok and auraData and auraData.sourceUnit
 
-		if ok and caster then
-			local pet = caster;
+		if caster then
+			local pet = caster
 
-			caster = (UnitIsUnit(caster, "pet") and "player" or caster:gsub("[pP][eE][tT]", ""));
-
+			caster = UnitIsUnit(caster, "pet") and "player" or caster:gsub("[pP][eE][tT]", "")
 			tooltip:AddDoubleLine(
 									" ",
 									(pet == caster
@@ -779,7 +831,7 @@ function M:OnTooltipSetAura(func, tooltip, ...)
 										or "|cffffc000%s:|r %s (%s)"):format(L"Source", UnitName(caster), UnitName(pet)),
 									1, 0.975, 0, RAID_CLASS_COLORS[select(2, UnitClass(caster))]:GetRGB()
 								);
-			tooltip:Show();
+			tooltip:Show()
 		end
 	end
 end

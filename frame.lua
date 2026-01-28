@@ -66,7 +66,7 @@ local function AddStatusBarFrame(tt, pool, min, max, value)
 	return frame
 end
 
-function F:CreateHealthBarFrame(parent, hp, maxhp, color)
+function F:CreateHealthBarFrame(parent, hp, maxhp, perchp, color)
 	if not self.healthBarPool then
 		self.healthBarPool = CreateFramePool("FRAME", nil, "TooltipUpgradesStatus")
 	else
@@ -85,7 +85,11 @@ function F:CreateHealthBarFrame(parent, hp, maxhp, color)
 
 	local abbr = AbbreviateLargeNumbers
 
-	border.leftText:SetText(("%.1f%%"):format(maxhp > 0 and ((hp / maxhp) * 100) or 0))
+	if not perchp then
+		perchp = maxhp > 0 and ((hp / maxhp) * 100) or 0
+	end
+
+	border.leftText:SetText(("%.1f%%"):format(perchp))
 	border.rightText:SetText(("%s/%s"):format(abbr(hp), abbr(maxhp)));
 
 	--@debug@
